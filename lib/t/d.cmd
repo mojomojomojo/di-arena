@@ -1,0 +1,1 @@
+py -3 .\dump.py t_battle_query.sqlite3 %*

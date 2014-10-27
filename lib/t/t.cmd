@@ -1,0 +1,1 @@
+py -3 .\t_battle_query_setup.py
