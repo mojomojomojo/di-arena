@@ -30,3 +30,5 @@ for i_id in range(3,10):
     print(i_robot)
 
 print('\nAll Robots:\n  {0}'.format('\n  '.join(list(map(str,bdata.GetRobots())))))
+
+print('\n\n[TEST_OK]')

@@ -32,13 +32,9 @@ if __name__ == '__main__':
         os.remove(db_file)
     bdata = BattleDB(db_file)
 
-    di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..')))
-    robo = Robocode.Robocode(os.path.join(di_arena,'robocode'),
-                             robots = os.path.join(di_arena,'robots'),
-                             battles = os.path.join(di_arena,'battles'),
-                             results = os.path.join(di_arena,'results'),
-                             recordings = os.path.join(di_arena,'recordings'),
-                         )
+    di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','arena')))
+    robo_dir = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','robocode')))
+    robo = Robocode.Robocode(di_arena,robo_dir)
 
     runner = BattleRunner(bdata,robo,workers)
     runner.start()

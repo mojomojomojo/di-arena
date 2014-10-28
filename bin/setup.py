@@ -38,6 +38,7 @@ def detectJava( exe, version_re ):
         raise e
 
 def installRobocode( javaPath ):
+    print("Installing Robocode...")
     installDir = os.path.join(os.path.dirname(__file__),'..','robocode')
     if os.path.isdir(installDir):
         try:
@@ -64,11 +65,33 @@ def installRobocode( javaPath ):
             traceback.print_exc()
             return False
 
+def copySampleRobots(roboDir,arenaDir):
+    print("Copying sample robots into the arena...")
+    sampleSrc = os.path.join(roboDir,'robots','sample')
+    sampleDst = os.path.join(arenaDir,'robots','sample')
+    if os.path.isdir(sampleDst):
+        shutil.rmtree(sampleDst)
+    return shutil.copytree(sampleSrc,sampleDst)
+
+def configureArena( roboDir ):
+    arenaDir = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','arena')))
+
+    for subdir in ('robots','battles','recordings','results'):
+        path = os.path.join(arenaDir,subdir)
+        if not os.path.isdir(path):
+            print('   {0}'.format(subdir))
+            os.makedirs(path)
+
+    if not copySampleRobots(roboDir,arenaDir):
+        return False
+
+    return arenaDir
 
 if __name__ == '__main__':
     # create any necessary directories
     # detect java
     # install robocode
+    # copy the sample robots
 
     javaInfo = detectJava('java',re.compile(r'java version "([^"]+)"',re.I))
     if not javaInfo:
@@ -79,4 +102,8 @@ if __name__ == '__main__':
     
     roboDir = installRobocode(javaInfo.path)
     if not roboDir:
+        sys.exit(1)
+
+    arenaDir = configureArena(roboDir)
+    if not arenaDir:
         sys.exit(1)

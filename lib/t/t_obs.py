@@ -112,7 +112,9 @@ if os.path.isfile(db_file):
     os.remove(db_file)
 bdata = BattleDB(db_file)
 
-robo = Robocode.Robocode(os.path.realpath(os.path.join(os.path.dirname(__file__),'..')))
+di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','arena')))
+robo_dir = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','robocode')))
+robo = Robocode.Robocode(di_arena,robo_dir)
 
 
 robots = [
@@ -236,7 +238,6 @@ print('Robot:\n{0}'.format(robot_to_obs))
 bdata.UpdateRobot(lastUpdated=datetime.now(),id=robot_to_obs.RobotID)
 bdata.ObsolesceBattles()
 # Query for scheduled, running, finished, and obsolete battles.
-bdata.debug()
 query_test( 
     bdata, robo,
     d_battles, r_battles,

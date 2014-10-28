@@ -112,13 +112,9 @@ if os.path.isfile(db_file):
     os.remove(db_file)
 bdata = BattleDB(db_file)
 
-di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..')))
-robo = Robocode.Robocode(os.path.join(di_arena,'robocode'),
-                         robots = os.path.join(di_arena,'robots'),
-                         battles = os.path.join(di_arena,'battles'),
-                         results = os.path.join(di_arena,'results'),
-                         recordings = os.path.join(di_arena,'recordings'),
-                     )
+di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','arena')))
+robocode = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','robocode')))
+robo = Robocode.Robocode(di_arena,robocode)
 
 
 robots = [
@@ -259,3 +255,4 @@ query_test(
 
 
 print("\nAll queries return expected values.")
+print("\n[TEST_OK]")

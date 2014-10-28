@@ -16,7 +16,9 @@ if os.path.isfile(db_file):
     os.remove(db_file)
 bdata = BattleDB(db_file)
 
-robo = Robocode.Robocode(os.path.realpath(os.path.join(os.path.dirname(__file__),'..')))
+arena_dir = os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','arena'))
+robocode_dir = os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','robocode'))
+robo = Robocode.Robocode(arena_dir,robocode_dir)
 print(robo)
 
 robots = [

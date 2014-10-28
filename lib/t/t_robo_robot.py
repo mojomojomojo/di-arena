@@ -7,7 +7,7 @@ import os.path
 
 di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','arena')))
 robo_dir = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','robocode')))
-robo = Robocode.Robocode(robo_dir,arena_dir)
+robo = Robocode.Robocode(di_arena,robo_dir)
 print(robo)
 
 print("\n\nName:")
@@ -29,3 +29,5 @@ robot = robo.robot(descriptor =
                                 'Crazy.robot'))
 print(robot)
 
+
+print('\n\n[TEST_OK]')

@@ -44,13 +44,9 @@ def main_objects( db_file ):
     # typical
     battledb = BattleDB(db_file)
     scheduler = Scheduler(db_file,None)
-    di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..')))
-    robocode = Robocode.Robocode(os.path.join(di_arena,'robocode'),
-                                 robots = os.path.join(di_arena,'robots'),
-                                 battles = os.path.join(di_arena,'battles'),
-                                 results = os.path.join(di_arena,'results'),
-                                 recordings = os.path.join(di_arena,'recordings'),
-                             )
+    di_arena = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','arena')))
+    robo_dir = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__),'..','..','robocode')))
+    robocode = Robocode.Robocode(di_arena,robo_dir)
 
     return robocode,battledb,scheduler
 
