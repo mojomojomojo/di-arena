@@ -15,33 +15,35 @@ from datetime import datetime
 import subprocess
 
 class Robocode:
-    def __init__( self, robocode_dir,
+    def __init__( self, robocode_dir, arena_dir,
                   robots = 'robots',
                   battles = 'battles',
                   results = 'results',
                   recordings = 'recordings',
                   lib = 'libs',
               ):
-        self._dir = robocode_dir
-        for prop,param in (('robots',robots),
-                           ('battles',battles),
-                           ('results',results),
-                           ('recordings',recordings)):
+        self.robocode_dir = robocode_dir
+        self.arena_dir = arena_dir
+        for prop,def_dir,param in (
+                ('robots',     self.robocode_dir, robots),
+                ('battles',    self.arena_dir,    battles),
+                ('results',    self.arena_dir,    results),
+                ('recordings', self.arena_dir,    recordings)):
             if os.path.isdir(param):
                 setattr(self,prop,param)
             else:
-                setattr(self,prop,os.path.join(self._dir,param))
+                setattr(self,prop,os.path.join(def_dir,param))
 
-        self.lib = os.path.join(self._dir,lib)
+        self.lib = os.path.join(self.robocode_dir,lib)
 
     def __str__(self):
         return '[Robocode dir({robo_dir}) {nonstd}]'.format(
-            robo_dir = self._dir,
+            robo_dir = self.robocode_dir,
             nonstd = ' '.join(
                 [ '{0}({1})'.format(d,getattr(self,d))
                   for d in
                     filter(lambda d:os.path.abspath(getattr(self,d)) !=
-                                    os.path.abspath(os.path.join(self._dir,d)),
+                                    os.path.abspath(os.path.join(self.robocode_dir,d)),
                            ('robots','battles','results','recordings','lib'))
               ]),
         )
@@ -250,7 +252,7 @@ class Robocode:
                 #'-DPARALLEL=true', # attempt parallelism
                 '-cp', os.path.join(self.robocode.lib,'robocode.jar'),
                 'robocode.Robocode',
-                '-cwd', self.robocode._dir,
+                '-cwd', self.robocode.robocode_dir,
                 '-battle', self.battleFile,
                 '-results', self.resultFile,
                 '-record', self.recordFile,
