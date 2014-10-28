@@ -5,39 +5,48 @@ import subprocess
 import re
 import zipfile
 
-def detectJava():
+def detectJava( exe, version_re ):
     try:
-        output = subprocess.check_output(['java','-version'],
+        output = subprocess.check_output([exe,'-version'],
                                          stderr = subprocess.STDOUT)
-        m = re.search(r'java version "([^"]+)"',output.decode('utf-8'),re.I)
+        m = version_re.search(output.decode('utf-8'))
         if m is None:
-            print('Cannot discern Java version from output\n\'{0}\''.format(
-                output), file=sys.stderr)
+            print('Cannot discern {0} version from output\n\'{1}\''.format(
+                exe,output), file=sys.stderr)
             return False
 
         ver = m.group(1)
-        print('Java version {0}'.format(ver))
+        print('{0} version {1}'.format(exe,ver))
 
-        javaPath = shutil.which('java')
+        javaPath = shutil.which(exe)
         if javaPath is None:
             # This really shouldn't happen.
-            print('Cannot discern path to Java executable.', file=sys.stderr)
+            print('Cannot discern path to {0} executable.'.format(exe),
+                  file=sys.stderr)
             return False
-        print('Java: {0}'.format(javaPath))
+        print('{0}: {1}'.format(exe,javaPath))
 
         class JavaInfo:
             def __init__(self,path,version):
                 self.path,self.version = path,version
         return JavaInfo(javaPath,ver)
     except FileNotFoundError:
-        print('Java interpreter is not in the PATH.', file=sys.stderr)
+        print('{0} is not in the PATH.'.format(exe), file=sys.stderr)
         return False
     except Exception as e:
-        print('Java detection failed: {0}'.format(e), file=sys.stderr)
+        print('{0} detection failed: {1}'.format(exe,e), file=sys.stderr)
         raise e
 
 def installRobocode( javaPath ):
     installDir = os.path.join(os.path.dirname(__file__),'..','robocode')
+    if os.path.isdir(installDir):
+        try:
+            shutil.rmtree(installDir)
+        except Exception as e:
+            print('Error removing existing Robocode install dir: {0}'.format(e),
+                  file = sys.stderr)
+            traceback.print_exc()
+            return False
 
     installerDir = os.path.join(os.path.dirname(__file__),'..','install')
     installer_re = re.compile(r'^robocode.*-setup.jar$',re.I)
@@ -61,8 +70,11 @@ if __name__ == '__main__':
     # detect java
     # install robocode
 
-    javaInfo = detectJava()
-    if javaInfo is None:
+    javaInfo = detectJava('java',re.compile(r'java version "([^"]+)"',re.I))
+    if not javaInfo:
+        sys.exit(1)
+    javacInfo = detectJava('javac',re.compile(r'javac (\S+)',re.I))
+    if not javacInfo:
         sys.exit(1)
     
     roboDir = installRobocode(javaInfo.path)
