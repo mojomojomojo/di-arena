@@ -28,7 +28,7 @@ class DBRecord:
 class Battle(DBRecord):
     def __init__(self, record, db):
         self.db = db
-        self._robots = []
+        self._robots = [] # <Robot>
         super().__init__(record)
 
     def addCompetitor( self, robot ):
@@ -71,11 +71,18 @@ class BattleDB:
             self.db_file,
         )
 
+    def execute( self, *args ):
+        if self._debug:
+            print('[SQLITE3.EXECUTE]\n  query: {0}\n  params: {1}'.format(args[0],args[1]))
+
+        return self.conn.execute(*args)
+
     def debug( self, state=None ):
         if state is None:
             self._debug = not self._debug
         else:
             self._debug = state
+        print('Debug: {0}'.format(self._debug))
 
     def connect( self ):
         if self.conn is not None:
@@ -141,12 +148,16 @@ class BattleDB:
             if name is None:
                 raise ValueError('UpdateRobot() cannot create new robot without a name')
             # ensure that names are unique
+            error = None
             try:
                 orig = self.GetRobot(name=name)
-                raise ValueError('UpdateRobot() cannot create new robot with duplicate name ({0}): {1}'.format(name,orig))
+                error = ValueError('UpdateRobot() cannot create new robot with duplicate name ({0}): {1}'.format(name,orig))
             except:
                 # good
                 pass
+            else:
+                # we couldn't throw this exception within the try clause
+                raise error
 
             # new robot
             insert = self.conn.execute('''
@@ -237,6 +248,9 @@ class BattleDB:
         'robocode.battle.hideEnemyNames':True,
     }
 
+    def getProperties( self ):
+        return BattleDB.defaultProperties
+
     def ObsolesceBattles( self ):
         '''
         Check each of the finished battles to see if any of the competitors
@@ -261,14 +275,95 @@ class BattleDB:
         ''',[])
 
         
+    def GetRobotFinishedBattles( self, robot, obsolete=False ):
+        '''
+        (set obsolete to None to prevent selection by Obsolete)
+        '''
+        return self.GetRobotBattles(robot,state=['finished'],obsolete=obsolete)
+
+    def GetRobotRunningBattles( self, robot ):
+        '''
+        '''
+        return self.GetRobotBattles(robot,state=['running'],obsolete=None)
+
+    def GetRobotScheduledBattles( self, robot ):
+        '''
+        '''
+        return self.GetRobotBattles(robot,state=['scheduled'],obsolete=None)
+
+    def GetRobotObsoleteBattles( self, robot ):
+        '''
+        '''
+        return self.GetRobotBattles(robot,obsolete=True)
+
+
     def GetRobotBattles( self, robot,
-                         state=['finished'], obsolete=False ):
+                         state=None, obsolete=None ):
         '''
         Return a list of BattleData.Battle objects for which <robot> is a
            competitor.
         '''
-        pass
+        self.connect()
 
+        if state is None:
+            # don't select by state
+            state = []
+
+        if robot.__class__ != Robot:
+            # assume <robot> is the ID
+            robot = self.GetRobot(id=robot)
+
+        conditions = [ 'BattleID IN ( SELECT BattleID FROM BattleRobots WHERE RobotID=? )' ]
+        parameters = [ robot.RobotID ]
+        for s in state:
+            conditions.append('State=?')
+            parameters.append(s)
+        if obsolete is not None:
+            conditions.append('Obsolete={0}'.format( 1 if obsolete else 0 ))
+
+        return [
+            self.GetBattle(record['BattleID'])
+            for record in self.execute('''
+                SELECT BattleID
+                FROM Battles
+                WHERE {0}
+            '''.format(' AND '.join(conditions)),parameters)
+        ]
+
+
+    # def GetBattleBetween( self, comps, obsolete=False ):
+    #     '''
+    #     set obsolete to None in order not to use Obsolete as a selection criteria
+    #     '''
+
+    #     joins = []
+    #     conds = []
+    #     for cmp_id in range(len(comps)):
+    #         if cmp_id == 0:
+    #             joins.append('INNER JOIN BattleRobots AS BR0 ON Battles.BattleID=BR0.BattleID')
+    #         else:
+    #             joins.append(
+    #                 'INNER JOIN BattleRobots AS BR{c_id} ON BR{p_id}.BattleID=BR{c_id}.BattleID'.format(
+    #                     c_id = cmp_id,
+    #                     p_id = cmp_id-1,
+    #                 ))
+    #         conds.append('BR{0}.RobotID=?',cmp_id)
+    #         params.append(comps[cmp_id].RobotID)
+
+
+    #     return [
+    #         GetBattle(record['BattleID']
+    #         for record in self.execute('''
+    #             SELECT BattleID
+    #             FROM Battles
+    #                  {joins}
+    #             WHERE {conds}
+    #         '''.format(
+    #             joins = ' '.join(joins),
+    #             conds = ' AND '.join(conds),
+    #         ),params)
+    #     ]
+            
 
     def GetRunningBattles(self):
         return self.GetBattles(State='running')
@@ -403,6 +498,7 @@ class BattleDB:
             # replace it with current data
             battle = self.GetBattle(battle.BattleID)
         else:
+            # assume it's a BattleID
             battle = self.GetBattle(battle)
 
         # Verify that it isn't already running or finished
@@ -444,6 +540,7 @@ class BattleDB:
             # replace it with current data
             battle = self.GetBattle(battle.BattleID)
         else:
+            # assume it's a BattleID
             battle = self.GetBattle(battle)
 
         # Verify that it isn't already running or finished
