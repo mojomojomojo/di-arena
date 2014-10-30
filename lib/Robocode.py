@@ -123,7 +123,7 @@ class Robot:
             
         self.name = robotBase
         self.descriptor = RobotDescr(os.path.splitext(self.path)[0] + '.robot')
-        print(str(self.descriptor))
+        #print(str(self.descriptor))
         # robocode.repository/src/main/java/net/sf/robocode/repository
         if ( ext == '.class' and
              not ( pieces[0] == 'tested' or pieces[0] == 'sample' ) ):
@@ -276,6 +276,7 @@ class Battle:
             self.output = subprocess.check_output(
                 command,
                 stderr = subprocess.STDOUT,
+                timeout = 60,
             )
             self.finished = datetime.now()
             self.runTime = self.finished-self.started
@@ -292,6 +293,12 @@ class Battle:
             self.error = False
 
             self.result = self.robocode.result(self.resultFile)
+
+        except subprocess.TimeoutExpired as e:
+            # A timeout should not consider a valid battle run.
+            self.runTime = datetime.now()-self.started
+            self.finished = None
+            self.error = True
 
         except subprocess.CalledProcessError as e:
             self.finished = datetime.now()

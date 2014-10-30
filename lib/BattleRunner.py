@@ -59,9 +59,11 @@ def BattleWorker( robocode, battledb, job_q, result_q ):
                     output = e.output,
                 ), file=sys.stderr)
 
-            battledb.BattleCompleted(battle.id,
-                                     battle.dbData(),
-                                     battle.result.dbData())
+            if not battle.error:
+                # Only record the data if the battle succeeded.
+                battledb.BattleCompleted(battle.id,
+                                         battle.dbData(),
+                                         battle.result.dbData())
 
             elapsed = datetime.now() - start_time
 
